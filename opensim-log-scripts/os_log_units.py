@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 # A bit awkward hard-coded, but having it in a separate file helps.
 
 def get_units():
@@ -67,3 +69,6 @@ def get_units():
         "scene.Pumpkin.RootAgents" : "avatars",
         "server.network.BytesSent/eth0" : "KB"
     }
+
+if __name__ == "__main__":
+    print "Placeholder file for opensim log units."
