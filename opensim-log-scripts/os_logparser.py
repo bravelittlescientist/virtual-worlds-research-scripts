@@ -138,7 +138,7 @@ def average_statistics_for_prefix(prefix, comparisons):
 
     return measures
 
-def plot_property(propname, label_data):
+def plot_property(propname, label_data, title=""):
     fig = plt.figure()
     units = get_units()
 
@@ -146,16 +146,26 @@ def plot_property(propname, label_data):
     entries = 721
     t = [x*5 for x in range(entries)]
 
-    for label in label_data.keys():
-        plt.plot(t, label_data[label][:entries], label=label)
+    markers = {
+            "camera" : '1',
+            "body" : '2',
+            "head" : '3',
+            "optimal" : '4'
+            }
 
-    plt.title('OpenSim Monitoring, 10 bots, 1 hour: \n' + propname)
-    plt.ylabel(propname.split(".")[-1])
+    for label in label_data.keys():
+        shorthand = label.split("_")[0]
+        print shorthand, label_data[label][-1], propname
+        plt.plot(t, label_data[label][:entries], label=shorthand, marker=markers[shorthand])
+
+    plt.title(title + "\n" + propname.split(".")[-1])
+    plt.ylabel("delta " + propname.split(".")[-1] + " /5s")
     if propname in units.keys():
         plt.ylabel(propname.split(".")[-1] + " (" + units[propname] + ")")
     plt.xlabel('Time (s)')
     plt.xlim((0,720*5))
     plt.legend(loc='lower right', shadow=True)
+
     return fig
 
 if __name__ == "__main__":
@@ -166,8 +176,15 @@ if __name__ == "__main__":
 
     # OK Command line arguments
     else:
-        log_directory = sys.argv[1]
-        prefixes = sys.argv[2:]
+        prefixes = [
+                "camera_sitting_",
+                "body_sitting_",
+                "head_sitting_",
+                "optimal_sitting_"]
+
+        n_bots = sys.argv[1]
+        log_directory = sys.argv[2]
+        prefixes = [p + str(n_bots) + "_" for p in prefixes]
 
         comparisons = log_preprocessing(log_directory, prefixes)
 
@@ -184,7 +201,8 @@ if __name__ == "__main__":
             for key in stats.keys():
                 label_plots[key] = stats[key][k]
 
-            fig = plot_property(k, label_plots)
+            ptitle = "OpenSimulator Monitoring, 1 hour, " + n_bots + " sitting bots"
+            fig = plot_property(k, label_plots, title=ptitle)
             pdf = pdf_save_figure(pdf, fig)
             plt.close(fig)
 
