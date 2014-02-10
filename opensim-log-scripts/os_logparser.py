@@ -109,19 +109,31 @@ def average_statistics_for_prefix(prefix, comparisons):
     prefix_keys = [key for key in comparisons.keys() if prefix in key]
     steps = min(len(comparisons[key]) for key in prefix_keys)
 
+    delta_measures = [
+        "clientstack.Potato.OutgoingUDPSendsCount",
+        "clientstack.Potato.IncomingPacketsProcessedCount"
+    ]
+
     measures = {}
     measure_keys = comparisons[prefix_keys[0]][0][1].keys()
-    for m in measure_keys:
-
+    for m in delta_measures:
         m_values = []
 
         for k in prefix_keys:
-            m_values.append([comparisons[k][s][1][m] for s in range(steps)])
+            delta = []
+            last_measure = 0
+            for s in range(steps):
+                delta.append(comparisons[k][s][1][m] - last_measure)
+                last_measure = comparisons[k][s][1][m]
+            m_values.append(delta)
+            #m_values.append([comparisons[k][s][1][m] for s in range(steps)])
 
         m_steps = []
+
         for step in range(steps):
             average = sum([m_values[grp][step] for grp in range(len(m_values))])/len(m_values)
             m_steps.append(average)
+
         measures[m] = m_steps
 
     return measures
@@ -137,7 +149,7 @@ def plot_property(propname, label_data):
     for label in label_data.keys():
         plt.plot(t, label_data[label][:entries], label=label)
 
-    plt.title('OpenSim Monitoring, 10 bots, 1 hour: ' + propname)
+    plt.title('OpenSim Monitoring, 10 bots, 1 hour: \n' + propname)
     plt.ylabel(propname.split(".")[-1])
     if propname in units.keys():
         plt.ylabel(propname.split(".")[-1] + " (" + units[propname] + ")")
