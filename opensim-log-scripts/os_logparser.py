@@ -1,14 +1,14 @@
-#!/usr/bin/python2
+#!/usr/bin/python
 
 import sys
 
 from datetime import datetime
 from os import walk
 
-from matplotlib.backends.backend_pdf import PdfPages
 from matplotlib import pyplot as plt
 
 from os_log_units import get_units
+from pdf_utils import pdf_create, pdf_post, pdf_save_figure
 
 def entry_parsing_example(parsed_log):
     first_entry = parsed_log[parsed_log.keys()[0]]
@@ -146,29 +146,13 @@ def plot_property(propname, label_data):
     plt.legend(loc='lower right', shadow=True)
     return fig
 
-def plot_figure_to_pdf(pdf, figure):
-    pdf.savefig(figure)
-    return pdf
-
-def create_pdf(output_filename):
-    pdf = PdfPages(output_filename)
-    return pdf
-
-def close_pdf(pdf):
-    pdf.close()
-
 if __name__ == "__main__":
 
-    # No command line arguments
-    if len(sys.argv) == 1:
+    # Insufficient command line arguments
+    if len(sys.argv) <= 2:
         print_usage()
 
-    # Just 2 keys
-    elif len(sys.argv) == 2:
-        print "1 argument: requested log plotting for directory:",sys.argv[1]
-        print_usage()
-
-    # At least 1
+    # OK Command line arguments
     else:
         log_directory = sys.argv[1]
         prefixes = sys.argv[2:]
@@ -181,7 +165,7 @@ if __name__ == "__main__":
         keys = stats[prefixes[0]].keys()
 
         plt.close("all")
-        pdf = create_pdf("output.pdf")
+        pdf = pdf_create("output.pdf")
 
         for k in keys:
             label_plots = {}
@@ -189,7 +173,7 @@ if __name__ == "__main__":
                 label_plots[key] = stats[key][k]
 
             fig = plot_property(k, label_plots)
-            pdf = plot_figure_to_pdf(pdf, fig)
+            pdf = pdf_save_figure(pdf, fig)
             plt.close(fig)
 
-        close_pdf(pdf)
+        pdf_post(pdf)
