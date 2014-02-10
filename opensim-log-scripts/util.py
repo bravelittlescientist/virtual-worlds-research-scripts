@@ -1,3 +1,5 @@
+#!/usr/bin/python
+
 import sys
 
 def get_start_time(base):
@@ -44,3 +46,6 @@ def get_average_cpu_usage_by_prefix(base, minutes=60, runs=3):
         base_content.append(extract_time_chunk(start_time, file_contents, minutes))
 
     return average_over_runs(base_content)
+
+if __name__ == "__main__":
+    print "Utility scripts for OpenSimulator log parsing"
