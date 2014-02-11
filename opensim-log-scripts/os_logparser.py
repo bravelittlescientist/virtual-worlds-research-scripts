@@ -10,13 +10,20 @@ from matplotlib import pyplot as plt
 from os_log_units import get_units
 from pdf_utils import pdf_create, pdf_post, pdf_save_figure
 
+delta_measures = [
+    "clientstack.Potato.OutgoingUDPSendsCount",
+    "clientstack.Potato.IncomingPacketsProcessedCount"
+]
+
 def entry_parsing_example(parsed_log):
     first_entry = parsed_log[parsed_log.keys()[0]]
     for k in first_entry.keys():
         print k, first_entry[k]
 
 def metric_entry_parser(measure,result):
-    return float(result.split()[0].strip("%").strip(","))
+    res = float(result.split()[-1].strip("/s,"))
+    #res = float(result.split()[0].strip("%").strip(","))
+    return res
 
 def organize_log_metrics(filename, start_time):
     timed_log_entries = []
@@ -39,7 +46,9 @@ def organize_log_metrics(filename, start_time):
             metric = line.split(" - ")[1].strip()
             category = metric.split(" : ")[0]
             res = metric.split(" : ")[1]
-            metrics[category] = metric_entry_parser(category,res)
+
+            if category in delta_measures:
+                metrics[category] = metric_entry_parser(category,res)
 
     readf.close()
 
@@ -109,24 +118,13 @@ def average_statistics_for_prefix(prefix, comparisons):
     prefix_keys = [key for key in comparisons.keys() if prefix in key]
     steps = min(len(comparisons[key]) for key in prefix_keys)
 
-    delta_measures = [
-        "clientstack.Potato.OutgoingUDPSendsCount",
-        "clientstack.Potato.IncomingPacketsProcessedCount"
-    ]
-
     measures = {}
     measure_keys = comparisons[prefix_keys[0]][0][1].keys()
     for m in delta_measures:
         m_values = []
 
         for k in prefix_keys:
-            delta = []
-            last_measure = 0
-            for s in range(steps):
-                delta.append(comparisons[k][s][1][m] - last_measure)
-                last_measure = comparisons[k][s][1][m]
-            m_values.append(delta)
-            #m_values.append([comparisons[k][s][1][m] for s in range(steps)])
+            m_values.append([comparisons[k][s][1][m] for s in range(steps)])
 
         m_steps = []
 
