@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import sys
+import numpy
 
 def get_start_time(base):
     """ Read start file, return start time string """
@@ -20,10 +21,15 @@ def extract_time_chunk(start_time, f_content, minutes):
     chunk = []
 
     for line in data:
-        if include or line.split()[0]:
+        if include or line.split()[0] == start_time:
             chunk.append(float(line.split()[1]))
+            include = True
 
     return chunk[:entries]
+
+def mean(li):
+    """ Computes average of numbers in a list """
+    return sum(li)/len(li)
 
 def average_over_runs(cpu_chunks):
 
@@ -32,7 +38,8 @@ def average_over_runs(cpu_chunks):
     average = []
 
     for c in range(entries):
-        average.append(sum([cpu_chunks[r][c] for r in range(runs)])/3.0)
+        average.append(mean([cpu_chunks[r][c] for r in range(runs)]))
+
     return average
 
 def get_average_cpu_usage_by_prefix(base, minutes=60, runs=3):
@@ -46,6 +53,19 @@ def get_average_cpu_usage_by_prefix(base, minutes=60, runs=3):
         base_content.append(extract_time_chunk(start_time, file_contents, minutes))
 
     return average_over_runs(base_content)
+
+def get_average_cpu_last_n_minutes(base, minutes=30, n=10, runs=3):
+    """ Computes average cpu usage over last n minutes of a run """
+    # Validate number of minutes, average over whole thing if needed
+    n = min(n, minutes)
+
+    # Figure out number of entries to average
+    entries = n*60
+
+    # Return mean of last entries provides of result
+    cpu_average = get_average_cpu_usage_by_prefix(base, minutes, runs)
+
+    return mean(cpu_average[-1*entries:])
 
 if __name__ == "__main__":
     print "Utility scripts for OpenSimulator log parsing"
