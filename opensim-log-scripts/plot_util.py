@@ -24,7 +24,7 @@ def plot_multibar_chart(bars, labels, title, xlabel, ylabel):
 
     index = np.arange(len(bars[0]))
     fig, ax = plt.subplots()
-    bar_width = .2
+    bar_width = .1
 
     colors = ['r', 'g', 'b', 'y']
 
@@ -41,12 +41,12 @@ def plot_multibar_chart(bars, labels, title, xlabel, ylabel):
     #plt.title('Scores by group and gender')
 
     ax.set_ylabel(ylabel)
+    ax.set_xlabel(xlabel)
     ax.set_title(title)
     ax.set_xticks(index+bar_width)
     ax.set_xticklabels(('10', '50', '100'))
-    plt.legend(loc='upper left')
+    plt.legend(bbox_to_anchor=(1.0,.5))
 
-    plt.tight_layout()
     plt.show()
 
 def example_line_plot():
