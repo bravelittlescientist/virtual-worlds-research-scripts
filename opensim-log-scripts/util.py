@@ -41,17 +41,26 @@ def average_over_runs(cpu_chunks):
 
     return average
 
-def get_average_cpu_usage_by_prefix(base, minutes=60, runs=3):
-    """ Returns the CPU usage from the start point to end """
+def get_single_cpu_run_by_prefix(base, minutes=30):
+    start_time = get_start_time(base)
+    file_contents = get_dat_file_contents(base)
+    return extract_time_chunk(start_time, file_contents, minutes)
 
+def get_all_cpu_runs_by_prefix(base, minutes=30, runs=3):
+    """ Returns all CPU Usage from start point to end """
     base_content = []
 
     for i in range(runs):
         start_time = get_start_time(base + str(i + 1))
-        file_contents = get_dat_file_contents(base + str(i + 1))
+        file_contents = get_dat_file_contents(base + str(i+1))
         base_content.append(extract_time_chunk(start_time, file_contents, minutes))
 
-    return average_over_runs(base_content)
+    return base_content
+
+def get_average_cpu_usage_by_prefix(base, minutes=60, runs=3):
+    """ Returns the CPU usage from the start point to end """
+
+    return average_over_runs(get_all_cpu_runs_by_prefix(base, minutes, runs))
 
 def get_average_cpu_last_n_minutes(base, minutes=30, n=1, runs=3):
     """ Computes average cpu usage over last n minutes of a run """
