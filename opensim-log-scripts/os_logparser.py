@@ -12,8 +12,9 @@ from pdf_utils import pdf_create, pdf_post, pdf_save_figure
 
 delta_measures = [
     "clientstack.Potato.OutgoingUDPSendsCount",
-    "clientstack.Potato.IncomingPacketsProcessedCount"
-]
+    "clientstack.Potato.IncomingPacketsProcessedCount",
+    "clientstack.Potato.IncomingUDPReceivesCount"
+    ]
 
 def entry_parsing_example(parsed_log):
     first_entry = parsed_log[parsed_log.keys()[0]]
@@ -140,8 +141,8 @@ def plot_property(propname, label_data, title=""):
     fig = plt.figure()
     units = get_units()
 
-    # 60 minutes and x axis
-    entries = 721
+    # 30 minutes and x axis
+    entries = 361
     t = [x*5 for x in range(entries)]
 
     markers = {
@@ -175,10 +176,12 @@ if __name__ == "__main__":
     # OK Command line arguments
     else:
         prefixes = [
-                "camera_sitting_",
                 "body_sitting_",
-                "head_sitting_",
-                "optimal_sitting_"]
+                "body_standing_",
+                "filtered_sitting_",
+                "filtered_standing_",
+                "baseline_sitting_",
+                "baseline_standing_"]
 
         n_bots = sys.argv[1]
         log_directory = sys.argv[2]
@@ -189,19 +192,28 @@ if __name__ == "__main__":
         stats = {}
         for p in prefixes:
             stats[p] = average_statistics_for_prefix(p, comparisons)
+            #print p, [len(stats[p][x]) for x in stats[p]]
         keys = stats[prefixes[0]].keys()
 
-        plt.close("all")
-        pdf = pdf_create("output.pdf")
+        for p in prefixes:
+            for k in stats[p]:
+                mode = p.split("_")[0]
+                category = k.split(".")[-1]
+                ten_minutes = stats[p][k][:361][-121:]
+                #print p, category, len(ten_minutes)
+                print p, category, sum(ten_minutes)/len(ten_minutes)
 
-        for k in keys:
-            label_plots = {}
-            for key in stats.keys():
-                label_plots[key] = stats[key][k]
+        #plt.close("all")
+        #pdf = pdf_create("output.pdf")
+        #
+        #for k in keys:
+        #    label_plots = {}
+        #    for key in stats.keys():
+        #        label_plots[key] = stats[key][k]
 
-            ptitle = "OpenSimulator Monitoring, 1 hour, " + n_bots + " sitting bots"
-            fig = plot_property(k, label_plots, title=ptitle)
-            pdf = pdf_save_figure(pdf, fig)
-            plt.close(fig)
+        #    ptitle = "OpenSimulator Monitoring, 1 hour, " + n_bots + " sitting bots"
+        #    fig = plot_property(k, label_plots, title=ptitle)
+        #    pdf = pdf_save_figure(pdf, fig)
+        #    plt.close(fig)
 
-        pdf_post(pdf)
+        #pdf_post(pdf)

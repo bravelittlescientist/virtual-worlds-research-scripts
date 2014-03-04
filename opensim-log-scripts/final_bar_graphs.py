@@ -5,7 +5,6 @@ import numpy
 import os
 
 from util import get_average_cpu_last_n_minutes
-from plot_util import plot_multibar_chart
 
 # Take as input a directory
 log_directory = sys.argv[1]
@@ -18,18 +17,18 @@ if not os.path.isdir(log_directory):
 
 # Prepare results tracker
 cpu_numbers = {
-        "optimal": [],
-        "camera" : [],
-        "body" : [],
-        "head" : []
+        "body_sitting_" : [],
+        "body_standing_" : [],
+        "filtered_sitting_" : [],
+        "filtered_standing_" : [],
+        "baseline_sitting_" : [],
+        "baseline_standing_" : []
         }
 
 # Pull CPU log info
 for mode in cpu_numbers.keys():
-    for n_bots in [10, 50, 100]:
-        print mode, n_bots
-        # prefix = log_directory + mode + "_sitting_" + str(n_bots) + "_"
-        prefix = log_directory + "sample_"
-        cpu = get_average_cpu_last_n_minutes(prefix, runs=1)
-        cpu_numbers[mode].append(cpu)
+    for n in [10,50,100]:
+        print mode, n, "bots"
+        prefix = log_directory + mode + str(n) + "_"
+        cpu = get_average_cpu_last_n_minutes(prefix)
         print cpu
