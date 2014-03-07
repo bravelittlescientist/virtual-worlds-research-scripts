@@ -20,30 +20,42 @@ if not os.path.isdir(log_directory):
 network_out = "network_out.csv"
 cpu_out = "cpu_usage.csv"
 
-positions = ["sitting", "standing"]
-configurations = ["body", "filtered", "baseline"]
-numbers = [10, 50, 100]
-columns = ["_".join([c, p, str(n), str(r)]) for p in positions for c in configurations for n in numbers for r in range(1,4)]
+configurations = ["baseline_sitting", "body_sitting", "filtered_sitting", "baseline_standing", "body_standing", "filtered_standing"]
+
+numbers = [10, 50, 100, 200]
+columns = ["_".join([c, str(n), str(r)]) for c in configurations for n in numbers for r in range(1,4)]
+labels = [c.replace("body","unfiltered") for c in columns]
 
 # CPU Usage
+cpus = {}
+for c in columns:
+    cpus[c] = get_single_cpu_run_by_prefix(log_directory + c)[-60:]
+
 with open(cpu_out, 'w') as csvfile:
     writer = csv.writer(csvfile, delimiter=',')
-    writer.writerow(columns)
+    writer.writerow(labels)
 
-    cpus = {}
-    for c in columns:
-        #cpus[c] = get_single_cpu_run_by_prefix(c)
-        pass
-
-    n_rows = len(cpus[columns[0]])
+    n_rows = 60
     for row in range(n_rows):
-        #writer.writerow([cpus[c][row] for c in columns])
-        pass
+        writer.writerow([cpus[c][row] for c in columns])
 
-# Network Usage
+# Network
+measures = [
+    "clientstack.Potato.OutgoingUDPSendsCount",
+    "clientstack.Potato.IncomingPacketsProcessedCount",
+    "clientstack.Potato.IncomingUDPReceivesCount"
+]
+
 network_logs = log_preprocessing(log_directory, columns)
-with open(network_out, 'w') as csvfile:
-    writer = csv.writer(csvfile, delimiter=',')
-    print [k for k in network_logs]
 
 
+for m in measures:
+    out = m.split(".")[-1] + ".csv"
+    with open(out, 'w') as csvfile:
+        writer = csv.writer(csvfile, delimiter=',')
+        writer.writerow(labels)
+
+        n_rows = 121
+        for row in range(n_rows):
+            write_row = row - n_rows
+            writer.writerow([network_logs[c][write_row][1][m] for c in columns])
